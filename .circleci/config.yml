@@ -1,0 +1,55 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/node:18.10.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package-lock.json" }}
+      - run: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package-lock.json" }}
+      - run: npm run build
+      - persist_to_workspace: # Save files to a workspace for subsequent jobs
+          root: .
+          paths:
+            - dist
+
+  test:
+    docker:
+      - image: cimg/node:18.10.0
+    steps:
+      - checkout
+      - attach_workspace: # Attach the workspace from the 'build' job
+          at: .
+      - run: npm test
+
+  deploy:
+    docker:
+      - image: cimg/base # Use a generic image for deployment
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: echo "Deploying your app from $(pwd)/dist..."
+      # Add your deployment commands here (e.g., `aws s3 sync dist s3://your-bucket`)
+
+workflows:
+  version: 2
+  build_test_deploy:
+    jobs:
+      - build
+      - test:
+          requires: # 'test' job requires 'build' to complete successfully
+            - build
+      - deploy:
+          requires: # 'deploy' job requires 'test' to complete successfully
+            - test
+          filters: # Only deploy on the main branch
+            branches:
+              only: main
