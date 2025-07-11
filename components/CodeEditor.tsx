@@ -72,7 +72,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   };
 
   return (
-    <div className="h-full w-full flex-2 flex flex-col bg-[#282a36]">
+    <div className="h-full w-full flex-3 flex flex-col bg-[#282a36]">
       <div className="flex-shrink-0 bg-[#333544] px-4 py-2 text-white">
         <p className="truncate">{activeFilePath}</p>
       </div>

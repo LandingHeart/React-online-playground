@@ -50,13 +50,9 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   activeFile
 }) => {
   return (
-    <div className="bg-[#252526] text-white p-2 w-64 flex-shrink-0 flex flex-col h-full">
-      <h3 className="text-sm font-bold mb-4 border-b border-gray-600 pb-2">
-        Files
-      </h3>
-      <div className="space-y-2">
-        {renderTree(files, onFileSelect, activeFile)}
-      </div>
+    <div className="text-white p-2 w-64 flex-shrink-0 flex flex-col h-full">
+      <h3 className="text-sm font-bold mb-4pb-2">{`Project name`}</h3>
+      <div>{renderTree(files, onFileSelect, activeFile)}</div>
     </div>
   );
 };

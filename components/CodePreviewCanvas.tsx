@@ -5,7 +5,7 @@ import { useWebContainer } from "@/components/WebContainerContext";
 const CodePreviewCanvas = () => {
   const { isReady, iframeRef } = useWebContainer();
   return (
-    <div className="flex-1 bg-purple-300 flex flex-col h-full w-full overflow-hidden">
+    <div className="flex-2 bg-purple-300 flex flex-col h-full w-full overflow-hidden">
       <div
         className="relative h-full w-full"
         style={{

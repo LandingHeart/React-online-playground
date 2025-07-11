@@ -1,32 +1,44 @@
+/* Import Tailwind's base, components, and utilities */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 @import "tailwindcss";
 
+/* 1. DEFINE THEME COLORS USING CSS VARIABLES
+  We define all our colors as CSS variables. The default is the light theme.
+*/
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --background: 248, 248, 242; /* #f8f8f2 - A soft, off-white */
+  --foreground: 40, 42, 54; /* #282a36 - Dracula's background, used as text color */
+
+  /* Accent Colors for Light Theme */
+  --primary: 98, 114, 164; /* #6272a4 - A muted purple/blue */
+  --secondary: 68, 71, 90; /* #44475a - A darker slate */
+  --accent: 255, 121, 198; /* #ff79c6 - Pink */
+  --success: 80, 250, 123; /* #50fa7b - Green */
+  --warning: 241, 250, 140; /* #f1fa8c - Yellow */
+  --danger: 255, 85, 85; /* #ff5555 - Red */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+/* 2. DEFINE THE DARK THEME (DRACULA)
+  When the 'dark' class is applied to the <html> element, these variables will override the :root ones.
+  Tailwind's 'dark' strategy should be set to 'class' in tailwind.config.js.
+*/
+.dark {
+  --background: 40, 42, 54; /* #282a36 - Dracula Background */
+  --foreground: 248, 248, 242; /* #f8f8f2 - Dracula Foreground */
+
+  /* Dracula Accent Colors */
+  --primary: 189, 147, 249; /* #bd93f9 - Purple */
+  --secondary: 68, 71, 90; /* #44475a - Current Line */
+  --accent: 255, 121, 198; /* #ff79c6 - Pink */
+  --success: 80, 250, 123; /* #50fa7b - Green */
+  --warning: 241, 250, 140; /* #f1fa8c - Yellow */
+  --danger: 255, 85, 85; /* #ff5555 - Red */
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
-
-.vh-100 {
-  height: 100vh;
+  color: rgb(var(--foreground));
+  background-color: rgb(var(--background));
+  transition: color 0.2s, background-color 0.2s;
 }

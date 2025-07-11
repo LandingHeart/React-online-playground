@@ -11,7 +11,15 @@ import { WebContainer } from "@webcontainer/api";
 
 const WebContainerContext = createContext(null);
 
-export const WebContainerProvider = ({ children, initialFiles }) => {
+interface WebContainerProviderProps {
+  children: React.ReactNode;
+  initialFiles: string;
+}
+
+export const WebContainerProvider: React.FC<WebContainerProviderProps> = ({
+  children,
+  initialFiles
+}) => {
   const [webcontainerInstance, setWebcontainerInstance] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [isReady, setIsReady] = useState(false);
@@ -19,15 +27,13 @@ export const WebContainerProvider = ({ children, initialFiles }) => {
   const bootAttempted = useRef(false);
 
   useEffect(() => {
-    let wcInstance = null;
-
     async function bootAndSetupWebContainer() {
       if (bootAttempted.current) return;
       bootAttempted.current = true;
 
       try {
         console.log("Attempting to boot WebContainer...");
-        wcInstance = await WebContainer.boot();
+        let wcInstance = await WebContainer.boot();
         setWebcontainerInstance(wcInstance);
 
         console.log("Mounting files...");

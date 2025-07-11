@@ -37,6 +37,11 @@ Welcome to the React Playground, a web-based code editor that provides a develop
     yarn dev
     ```
     Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+5.  source venv/bin/activate to install python packages
+    pip install -r requirements.txt
+    pip freeze > requirements.txt
+6.  alembic revision --autogenerate -m "Create initial tables"
+    alembic upgrade head
 
 ## 🛠️ Technologies Used
 
@@ -46,17 +51,20 @@ This project is built with a modern tech stack:
 - **[Next.js](https://nextjs.org/)**: The React framework for production.
 - **[Monaco Editor](https://microsoft.github.io/monaco-editor/)**: The code editor that powers VS Code.
 - **[Tailwind CSS](https://tailwindcss.com/)**: A utility-first CSS framework for rapid UI development.
-- **[Fast API](https://fastapi.tiangolo.com/)**: Is a high-performance web framework for building HTTP-based service APIs in Python 3.8+.
+- **[FastAPI](https://fastapi.tiangolo.com/)**: Is a high-performance web framework for building HTTP-based service APIs in Python 3.8+.
 - **[Web Container](https://webcontainers.io/)**: Is a browser-based Node js runtime environment
+- **[SQLAlchemy](https://www.sqlalchemy.org/)**: SQLAlchemy is the Python SQL toolkit and Object Relational Mapper that gives application developers the full power and flexibility of SQL.
+- **[Alembic](https://github.com/sqlalchemy/alembic)**: Alembic is a database migrations tool written by the author of SQLAlchemy. A migrations tool offers the following functionality:
 
 ## 🔮 Future Improvements
 
 We have plans to add more features to make this playground even more powerful:
 
 - [ ] Continue adding Integration with a real WebContainer API for in-browser code execution.
-- [ ] Resizable panes for a more flexible layout.
+- [ ] Resizable panes for a more flexible layout. (currently buggy, fixing later)
 - [ ] Support for adding and removing files/folders.
 - [ ] Terminal integration.
 - [ ] More themes for the editor.
 - [ ] Auth, google auth, etc.
 - [ ] project base questions, feature implementatins, fixing bug in provided code.
+- [ ] docker container for fast api and next js.
