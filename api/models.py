@@ -26,9 +26,12 @@ class Project(Base):
 
   # Timestamps
   created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-  updated_at = Column(TIMESTAMP(timezone=True),
-                      default=func.now(), onupdate=func.now())
-
+  updated_at = Column(
+      TIMESTAMP(timezone=True),
+      default=None,  # Set default to None
+      onupdate=func.now(),
+      nullable=True  # Explicitly allow NULL values
+  )
   # Relationship to the File model
   # The 'back_populates' argument establishes a bidirectional relationship.
   # 'cascade="all, delete-orphan"' means that related files will be deleted
@@ -50,8 +53,12 @@ class File(Base):
 
   # Timestamps
   created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
-  updated_at = Column(TIMESTAMP(timezone=True),
-                      default=func.now(), onupdate=func.now())
+  updated_at = Column(
+      TIMESTAMP(timezone=True),
+      default=None,  # Set default to None
+      onupdate=func.now(),
+      nullable=True  # Explicitly allow NULL values
+  )
 
   # Relationship to the Project model
   project = relationship("Project", back_populates="files")

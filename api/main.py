@@ -1,12 +1,12 @@
 # api/main.py
+# Import the modules directly to make object access more explicit
 from . import database, models, schemas
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Annotated
-
-
-# Import the modules directly to make object access more explicit
+from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 
 @asynccontextmanager
@@ -42,16 +42,26 @@ def hello_fast_api():
   return {"message": "Hello from FastAPI"}
 
 
-@app.post("/api/py/projects/", response_model=schemas.Project, status_code=201)
-async def create_project(
-    project: schemas.ProjectCreate, db: AsyncSession = Depends(get_db)
+@app.get("/api/py/projects/{project_id}", response_model=schemas.Project)
+async def get_project_with_files(
+    project_id: int, db: AsyncSession = Depends(get_db)
 ):
   """
-  An example endpoint to demonstrate the database connection.
-  This creates a new project in the database.
+  Retrieves a single project by its ID, including all of its associated files.
   """
-  db_project = models.Project(**project.model_dump())
-  db.add(db_project)
-  await db.commit()
-  await db.refresh(db_project)
+  # Create a query to select the project and eagerly load the related files
+  # using selectinload() to prevent the N+1 query problem.
+  query = (
+      select(models.Project)
+      .where(models.Project.id == project_id)
+      .options(selectinload(models.Project.files))
+  )
+  result = await db.execute(query)
+
+  # scalar_one_or_none() is a clean way to get a single result or None
+  db_project = result.scalar_one_or_none()
+
+  if db_project is None:
+    raise HTTPException(status_code=404, detail="Project not found")
+
   return db_project

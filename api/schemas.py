@@ -1,6 +1,7 @@
 # schemas.py
 from pydantic import BaseModel
 from datetime import datetime
+from typing import List, Optional
 
 
 class ItemBase(BaseModel):
@@ -21,56 +22,51 @@ class Item(ItemBase):
 # --- File Schemas ---
 
 
+# Base File Schema
 class FileBase(BaseModel):
-  """Base schema for a file, containing common attributes."""
   path: str
   content: str
 
+# Schema for creating a file (if needed)
+
 
 class FileCreate(FileBase):
-  """Schema for creating a new file. Inherits path and content."""
   pass
+
+# Schema for reading a file
 
 
 class File(FileBase):
-  """
-  Schema for reading a file from the database.
-  Includes all database-generated fields.
-  """
   id: int
-  project_id: int
   created_at: datetime
-  updated_at: datetime
+  updated_at: Optional[datetime] = None  # Make updated_at optional
 
   class Config:
-    # This allows Pydantic to read data from ORM models (SQLAlchemy).
     from_attributes = True
-
 
 # --- Project Schemas ---
 
+# Base Project Schema
+
+
 class ProjectBase(BaseModel):
-  """Base schema for a project."""
   name: str
-  description: str | None = None
+  description: Optional[str] = None
+
+# Schema for creating a project
 
 
 class ProjectCreate(ProjectBase):
-  """Schema for creating a new project."""
   pass
+
+# Schema for reading a project
 
 
 class Project(ProjectBase):
-  """
-  Schema for reading a project from the database.
-  This includes a list of its associated files.
-  """
   id: int
-  user_id: int | None = None
   created_at: datetime
-  updated_at: datetime
-  files: list[File] = []  # Nested list of File schemas
+  updated_at: Optional[datetime] = None  # Make updated_at optional
+  files: List[File] = []  # Include the list of files
 
   class Config:
-    # Enable ORM mode to map SQLAlchemy models to this Pydantic model.
     from_attributes = True
