@@ -59,9 +59,9 @@ async def get_project_with_files(
   result = await db.execute(query)
 
   # scalar_one_or_none() is a clean way to get a single result or None
-  db_project = result.scalar_one_or_none()
+  project = result.scalar_one_or_none()
 
-  if db_project is None:
+  if project is None:
     raise HTTPException(status_code=404, detail="Project not found")
 
-  return db_project
+  return project

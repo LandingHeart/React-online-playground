@@ -41,6 +41,7 @@ Welcome to the React Playground, a web-based code editor that provides a develop
     pip install -r requirements.txt
     pip freeze > requirements.txt
 6.  alembic revision --autogenerate -m "Create initial tables"
+    alembic revision -m "seed table"
     alembic upgrade head
 
 ## 🛠️ Technologies Used
