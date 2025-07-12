@@ -1,12 +1,14 @@
 # api/main.py
 # Import the modules directly to make object access more explicit
-from . import database, models, schemas
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import FastAPI, Depends, HTTPException
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Annotated
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
+import database
+import models
+import schemas
 
 
 @asynccontextmanager

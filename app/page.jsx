@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import CodeEditor from "@/components/CodeEditor";
 import CodePreviewCanvas from "@/components/CodePreviewCanvas";
 import FileExplorer from "@/components/FileExplorer";

@@ -1,4 +1,3 @@
-// components/WebContainerContext.jsx
 "use client";
 import React, {
   createContext,
@@ -11,15 +10,7 @@ import { WebContainer } from "@webcontainer/api";
 
 const WebContainerContext = createContext(null);
 
-interface WebContainerProviderProps {
-  children: React.ReactNode;
-  initialFiles: string;
-}
-
-export const WebContainerProvider: React.FC<WebContainerProviderProps> = ({
-  children,
-  initialFiles
-}) => {
+export const WebContainerProvider = ({ children, initialFiles }) => {
   const [webcontainerInstance, setWebcontainerInstance] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [isReady, setIsReady] = useState(false);
@@ -27,13 +18,15 @@ export const WebContainerProvider: React.FC<WebContainerProviderProps> = ({
   const bootAttempted = useRef(false);
 
   useEffect(() => {
+    let wcInstance = null; // Define wcInstance here to be accessible in the cleanup function
+
     async function bootAndSetupWebContainer() {
       if (bootAttempted.current) return;
       bootAttempted.current = true;
 
       try {
         console.log("Attempting to boot WebContainer...");
-        let wcInstance = await WebContainer.boot();
+        wcInstance = await WebContainer.boot();
         setWebcontainerInstance(wcInstance);
 
         console.log("Mounting files...");
@@ -86,7 +79,7 @@ export const WebContainerProvider: React.FC<WebContainerProviderProps> = ({
         wcInstance.teardown();
       }
     };
-  }, []);
+  }, [initialFiles]); // Added initialFiles to dependency array as it's used inside
 
   // This effect waits for the previewUrl and updates the iframe
   useEffect(() => {

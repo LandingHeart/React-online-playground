@@ -1,11 +1,7 @@
 "use client";
+
 // Helper function to render the file tree recursively
-const renderTree = (
-  tree: any,
-  onFileSelect: any,
-  activeFile: any,
-  path = ""
-) => {
+const renderTree = (tree, onFileSelect, activeFile, path = "") => {
   return Object.entries(tree).map(([name, item]) => {
     const currentPath = path ? `${path}/${name}` : `/${name}`;
 
@@ -38,17 +34,7 @@ const renderTree = (
   });
 };
 
-interface FileExplorerProps {
-  files: string;
-  onFileSelect: (currentPath: string) => void;
-  activeFile: string;
-}
-
-const FileExplorer: React.FC<FileExplorerProps> = ({
-  files,
-  onFileSelect,
-  activeFile
-}) => {
+const FileExplorer = ({ files, onFileSelect, activeFile }) => {
   return (
     <div className="text-white p-2 w-64 flex-shrink-0 flex flex-col h-full">
       <h3 className="text-sm font-bold mb-4pb-2">{`Project name`}</h3>

@@ -1,4 +1,6 @@
-export const initialFiles = {
+import { FileSystemTree } from "./fileTypes";
+
+export const initialFiles: FileSystemTree = {
   src: {
     directory: {
       "main.jsx": {

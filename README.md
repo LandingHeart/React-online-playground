@@ -43,6 +43,7 @@ Welcome to the React Playground, a web-based code editor that provides a develop
 6.  alembic revision --autogenerate -m "Create initial tables"
     alembic revision -m "seed table"
     alembic upgrade head
+7.  docker compose up
 
 ## 🛠️ Technologies Used
 
