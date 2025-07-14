@@ -11,7 +11,7 @@ import { initialFiles } from "./utils/initialFiles";
 import ActivityBar from "@/components/ActivityBar";
 import SearchSidebar from "@/components/SearchSidebar";
 import Navbar from "@/components/Navbar";
-
+import axios from "axios";
 // getFileContent and updateFileContent functions remain the same...
 const getFileContent = (files, path) => {
   if (!path) return undefined;
@@ -54,7 +54,6 @@ const Playground = () => {
   const [files, setFiles] = useState(initialFiles);
   const [activeFilePath, setActiveFilePath] = useState("/src/App.jsx");
   const { webcontainerInstance, isReady } = useWebContainer();
-  const [isWritingFile, setIsWritingFile] = useState(false);
   const [activeView, setActiveView] = useState("files");
 
   // State and refs for resizing
@@ -65,7 +64,8 @@ const Playground = () => {
 
   const isFileSwitch = useRef(false);
   const activeCode = getFileContent(files, activeFilePath) || "";
-
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     if (isFileSwitch.current) {
       isFileSwitch.current = false;
@@ -73,11 +73,9 @@ const Playground = () => {
     }
     if (!isReady || !webcontainerInstance) return;
     const debounceTimeout = setTimeout(async () => {
-      setIsWritingFile(true);
       if (activeFilePath)
         await webcontainerInstance.fs.writeFile(activeFilePath, activeCode);
       console.log(`${activeFilePath} updated in WebContainer.`);
-      setIsWritingFile(false);
     }, 500);
     return () => clearTimeout(debounceTimeout);
   }, [activeCode, webcontainerInstance, isReady, activeFilePath]);
@@ -157,6 +155,21 @@ const Playground = () => {
     handleResize(); // Call once on mount
     return () => window.removeEventListener("resize", handleResize);
   }, [sidebarWidth]);
+
+  useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        const response = await axios.get("/api/py/projects/1");
+        console.log("respose", response.data);
+      } catch (err) {
+        setError(err); // Set the error if the request fails
+      } finally {
+        setLoading(false); // Set loading to false in both cases
+      }
+    };
+    fetchProject();
+    return () => {};
+  }, []);
 
   return (
     <div className="h-screen w-screen bg-[#1e1e1e] flex flex-col items-stretch overflow-hidden font-sans">

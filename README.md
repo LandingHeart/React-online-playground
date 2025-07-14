@@ -1,7 +1,6 @@
 # React Playground - A VS Code-like Online Editor
 
-![React Playground Screenshot](https://i.imgur.com/your-screenshot-url.png)  
-![Example Image](example.png)
+![React Playground Screenshot](https://i.imgur.com/your-screenshot-url.png)
 
 Welcome to the React Playground, a web-based code editor that provides a development experience similar to Visual Studio Code, right in your browser. It's designed for quickly prototyping, experimenting with, and sharing React components without the need for a local development setup.
 
@@ -56,17 +55,21 @@ This project is built with a modern tech stack:
 - **[FastAPI](https://fastapi.tiangolo.com/)**: Is a high-performance web framework for building HTTP-based service APIs in Python 3.8+.
 - **[Web Container](https://webcontainers.io/)**: Is a browser-based Node js runtime environment
 - **[SQLAlchemy](https://www.sqlalchemy.org/)**: SQLAlchemy is the Python SQL toolkit and Object Relational Mapper that gives application developers the full power and flexibility of SQL.
-- **[Alembic](https://github.com/sqlalchemy/alembic)**: Alembic is a database migrations tool written by the author of SQLAlchemy. A migrations tool offers the following functionality:
+- **[Alembic](https://github.com/sqlalchemy/alembic)**: Alembic is a database migrations tool written by the author of SQLAlchemy.
 
-## 🔮 Future Improvements
+## MVPs
 
-We have plans to add more features to make this playground even more powerful:
+- [ ] Provider simple project, 1-3 questions, solving it, validation, submitting
+- [ ] deploy to vercel
 
-- [ ] Continue adding Integration with a real WebContainer API for in-browser code execution.
-- [ ] Resizable panes for a more flexible layout. (currently buggy, fixing later)
+## 🔮 WIP Features
+
+Feature plans to add more features to make this playground even more powerful:
+
+- [ ] docker container for fast api and next js.
+- [ ] circle ci pipelines
+- [ ] Resizable panes for a more flexible layout.
 - [ ] Support for adding and removing files/folders.
 - [ ] Terminal integration.
-- [ ] More themes for the editor.
+- [ ] More themes for the editor. primary light and dark
 - [ ] Auth, google auth, etc.
-- [ ] project base questions, feature implementatins, fixing bug in provided code.
-- [ ] docker container for fast api and next js.
