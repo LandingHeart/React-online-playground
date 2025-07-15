@@ -1,88 +1,113 @@
+// src/app/page.jsx
+
 "use client";
 import { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import CodeEditor from "@/components/CodeEditor";
 import CodePreviewCanvas from "@/components/CodePreviewCanvas";
 import FileExplorer from "@/components/FileExplorer";
+import ActivityBar from "@/components/ActivityBar";
+import SearchSidebar from "@/components/SearchSidebar";
+import Navbar from "@/components/Navbar";
+import Console from "@/components/Console";
 import {
   WebContainerProvider,
   useWebContainer
 } from "@/components/WebContainerContext";
-import { initialFiles } from "./utils/initialFiles";
-import ActivityBar from "@/components/ActivityBar";
-import SearchSidebar from "@/components/SearchSidebar";
-import Navbar from "@/components/Navbar";
-import axios from "axios";
-// getFileContent and updateFileContent functions remain the same...
+import { transformProjectDataToFS } from "./utils/transformProjectDataToFS";
+
 const getFileContent = (files, path) => {
   if (!path) return undefined;
-  const parts = path.substring(1).split("/");
+  const parts = path.startsWith("/")
+    ? path.substring(1).split("/")
+    : path.split("/");
   let node = files;
   for (const part of parts) {
     if (!node) return undefined;
     node = node.directory ? node.directory[part] : node[part];
   }
-  if (node && node.file) {
-    return node.file.contents;
-  }
-  return undefined;
+  return node?.file?.contents;
 };
 
 const updateFileContent = (files, path, newContent) => {
   const newFiles = JSON.parse(JSON.stringify(files));
-  const parts = path.substring(1).split("/");
+  const parts = path.startsWith("/")
+    ? path.substring(1).split("/")
+    : path.split("/");
   const fileName = parts.pop();
   if (!fileName) return newFiles;
-
   let parentDir = newFiles;
   for (const part of parts) {
     parentDir = parentDir.directory
       ? parentDir.directory[part]
       : parentDir[part];
   }
-
-  const targetDir = parentDir.directory ? parentDir.directory : parentDir;
-
-  if (targetDir && targetDir[fileName] && targetDir[fileName].file) {
+  const targetDir = parentDir.directory || parentDir;
+  if (targetDir?.[fileName]?.file) {
     targetDir[fileName].file.contents = newContent;
-  } else {
-    console.error("Could not find file to update at path:", path);
   }
   return newFiles;
 };
 
 const Playground = () => {
-  const [files, setFiles] = useState(initialFiles);
-  const [activeFilePath, setActiveFilePath] = useState("/src/App.jsx");
-  const { webcontainerInstance, isReady } = useWebContainer();
+  const [files, setFiles] = useState({});
+  const [activeFilePath, setActiveFilePath] = useState(null);
   const [activeView, setActiveView] = useState("files");
 
-  // State and refs for resizing
-  const [sidebarWidth, setSidebarWidth] = useState(256);
-  const [editorWidth, setEditorWidth] = useState(700); // Start with a reasonable fixed width
-  const isResizingSidebar = useRef(false);
-  const isResizingEditor = useRef(false);
+  const {
+    webcontainerInstance,
+    isLoading,
+    error,
+    loadingMessage,
+    logs,
+    mountFilesAndRun
+  } = useWebContainer();
 
+  const [sidebarWidth, setSidebarWidth] = useState(256);
   const isFileSwitch = useRef(false);
-  const activeCode = getFileContent(files, activeFilePath) || "";
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+
+  const activeCode = activeFilePath
+    ? getFileContent(files, activeFilePath) || ""
+    : "";
+
+  useEffect(() => {
+    if (!webcontainerInstance) return;
+
+    const fetchAndMountProject = async () => {
+      try {
+        const response = await axios.get("/api/py/projects/1");
+        const transformedData = transformProjectDataToFS(response.data);
+        setFiles(transformedData);
+        console.log(transformedData);
+        await mountFilesAndRun(transformedData);
+        const initialPath = "src/App.jsx";
+        if (initialPath) setActiveFilePath(`/${initialPath}`);
+      } catch (err) {
+        // Error is already handled and displayed from the context
+        console.error("API Error:", err);
+      }
+    };
+    fetchAndMountProject();
+  }, [webcontainerInstance, mountFilesAndRun]);
+
   useEffect(() => {
     if (isFileSwitch.current) {
       isFileSwitch.current = false;
       return;
     }
-    if (!isReady || !webcontainerInstance) return;
+    if (!webcontainerInstance || !activeFilePath) return;
     const debounceTimeout = setTimeout(async () => {
-      if (activeFilePath)
-        await webcontainerInstance.fs.writeFile(activeFilePath, activeCode);
-      console.log(`${activeFilePath} updated in WebContainer.`);
+      await webcontainerInstance.fs.writeFile(activeFilePath, activeCode);
     }, 500);
     return () => clearTimeout(debounceTimeout);
-  }, [activeCode, webcontainerInstance, isReady, activeFilePath]);
+  }, [activeCode, webcontainerInstance, activeFilePath]);
 
   const handleCodeChange = (newCode) => {
-    const updatedFiles = updateFileContent(files, activeFilePath, newCode);
-    setFiles(updatedFiles);
+    if (activeFilePath) {
+      setFiles((currentFiles) =>
+        updateFileContent(currentFiles, activeFilePath, newCode)
+      );
+    }
   };
 
   const handleFileSelect = (newPath) => {
@@ -90,135 +115,53 @@ const Playground = () => {
     setActiveFilePath(newPath);
   };
 
-  const handleMouseDownSidebar = (e) => {
-    e.preventDefault();
-    isResizingSidebar.current = true;
-  };
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-[#1e1e1e] font-sans text-white">
+        🚀 {loadingMessage || "Preparing environment..."}
+      </div>
+    );
+  }
 
-  const handleMouseDownEditor = (e) => {
-    e.preventDefault();
-    isResizingEditor.current = true;
-  };
-
-  // Effect to add and remove global event listeners
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      // --- Sidebar and Editor Resizing Logic ---
-      if (isResizingSidebar.current) {
-        setSidebarWidth((prevSidebarWidth) => {
-          const newSidebarWidth = prevSidebarWidth + e.movementX;
-          const clampedSidebarWidth = Math.max(
-            150,
-            Math.min(newSidebarWidth, 500)
-          );
-          const actualChange = clampedSidebarWidth - prevSidebarWidth;
-
-          // Adjust editor width by the inverse of the sidebar's actual change
-          if (actualChange !== 0) {
-            setEditorWidth((prevEditorWidth) =>
-              Math.max(200, prevEditorWidth - actualChange)
-            );
-          }
-          return clampedSidebarWidth;
-        });
-      }
-      // --- Editor and Preview Resizing Logic ---
-      else if (isResizingEditor.current) {
-        setEditorWidth((prevEditorWidth) => {
-          const newEditorWidth = prevEditorWidth + e.movementX;
-          return Math.max(200, newEditorWidth);
-        });
-      }
-    };
-
-    const handleMouseUp = () => {
-      isResizingSidebar.current = false;
-      isResizingEditor.current = false;
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, []); // Empty dependency array ensures this runs only once
-
-  // Optional: Adjust layout on window resize to be more responsive
-  useEffect(() => {
-    const handleResize = () => {
-      // Simple logic: give editor a portion of the available space
-      const remainingWidth = window.innerWidth - sidebarWidth;
-      setEditorWidth(Math.max(200, remainingWidth * 0.6));
-    };
-    window.addEventListener("resize", handleResize);
-    handleResize(); // Call once on mount
-    return () => window.removeEventListener("resize", handleResize);
-  }, [sidebarWidth]);
-
-  useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        const response = await axios.get("/api/py/projects/1");
-        console.log("respose", response.data);
-      } catch (err) {
-        setError(err); // Set the error if the request fails
-      } finally {
-        setLoading(false); // Set loading to false in both cases
-      }
-    };
-    fetchProject();
-    return () => {};
-  }, []);
+  if (error) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-[#1e1e1e] font-sans text-red-400">
+        ❌ Error: {error}
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-screen bg-[#1e1e1e] flex flex-col items-stretch overflow-hidden font-sans">
       <Navbar />
       <div className="flex flex-row flex-1 min-h-0">
         <ActivityBar activeView={activeView} onFileSelect={setActiveView} />
-
-        {/* Sidebar Panel */}
         <div
           className="flex-shrink-0 bg-[#252526]"
           style={{ width: `${sidebarWidth}px` }}
         >
-          {activeView === "files" && (
-            <FileExplorer
-              files={files}
-              activeFile={activeFilePath}
-              onFileSelect={handleFileSelect}
-            />
-          )}
-          {activeView === "search" && <SearchSidebar />}
-        </div>
-
-        {/* Sidebar Resizer */}
-        <div
-          onMouseDown={handleMouseDownSidebar}
-          className="cursor-col-resize w-2 flex-shrink-0 bg-gray-600 hover:bg-gray-500 transition-colors"
-        />
-
-        {/* Editor Panel */}
-        <div
-          className="flex-shrink-0 flex min-w-0"
-          style={{ width: `${editorWidth}px` }}
-        >
-          <CodeEditor
-            code={activeCode}
-            setCode={handleCodeChange}
-            activeFilePath={activeFilePath}
+          <FileExplorer
+            files={files}
+            activeFile={activeFilePath}
+            onFileSelect={handleFileSelect}
           />
         </div>
-
-        {/* Editor Resizer */}
-        <div
-          onMouseDown={handleMouseDownEditor}
-          className="cursor-col-resize w-2 flex-shrink-0 bg-gray-600 hover:bg-gray-500 transition-colors"
-        />
-
-        {/* Preview Panel */}
-        <div className="flex-1 min-w-0">
-          <CodePreviewCanvas />
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 min-h-0">
+            <CodeEditor
+              code={activeCode}
+              setCode={handleCodeChange}
+              activeFilePath={activeFilePath}
+            />
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 min-h-0">
+            <CodePreviewCanvas />
+          </div>
+          <div className="h-48 flex-shrink-0 border-t-2 border-gray-600">
+            <Console logs={logs} />
+          </div>
         </div>
       </div>
     </div>
@@ -227,7 +170,7 @@ const Playground = () => {
 
 const Page = () => {
   return (
-    <WebContainerProvider initialFiles={initialFiles}>
+    <WebContainerProvider>
       <Playground />
     </WebContainerProvider>
   );

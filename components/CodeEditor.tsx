@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import Editor from "@monaco-editor/react";
 
 interface CodeEditorProps {
@@ -44,13 +45,26 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   setCode,
   activeFilePath
 }) => {
+  const [displayCode, setDisplayCode] = useState("");
+  // TODO find a better way to prevent the monaco editor to not flickers
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDisplayCode(code);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [code]);
+
   const handleEditorMount = (editor: any, monaco: any) => {
     defineDraculaTheme(monaco);
     monaco.editor.setTheme("dracula");
   };
 
-  const handleChange = (newCode: any) => {
-    setCode(newCode || "");
+  const handleChange = (newCode: string | undefined) => {
+    const value = newCode || "";
+    // Update local state immediately for a responsive UI while typing.
+    setDisplayCode(value);
+    // Also update the parent component's state.
+    setCode(value);
   };
 
   const getLanguage = (filePath: any) => {
@@ -81,7 +95,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           height="100%"
           width="100%"
           language={getLanguage(activeFilePath)}
-          value={code}
+          // MODIFIED: Use the internal `displayCode` state for the editor's value.
+          value={displayCode}
           theme="dracula"
           options={{
             fontSize: 13,

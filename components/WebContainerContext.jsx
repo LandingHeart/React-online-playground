@@ -1,98 +1,124 @@
+// src/components/WebContainerContext.jsx
+
 "use client";
 import React, {
   createContext,
   useContext,
   useState,
   useEffect,
-  useRef
+  useRef,
+  useCallback
 } from "react";
 import { WebContainer } from "@webcontainer/api";
 
 const WebContainerContext = createContext(null);
 
-export const WebContainerProvider = ({ children, initialFiles }) => {
+export const WebContainerProvider = ({ children }) => {
   const [webcontainerInstance, setWebcontainerInstance] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
-  const [isReady, setIsReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [logs, setLogs] = useState([]);
+  const [loadingMessage, setLoadingMessage] = useState(
+    "Booting Environment..."
+  );
   const iframeRef = useRef(null);
-  const bootAttempted = useRef(false);
 
   useEffect(() => {
-    let wcInstance = null; // Define wcInstance here to be accessible in the cleanup function
+    const bootWebContainer = async () => {
+      try {
+        const wcInstance = await WebContainer.boot();
+        setWebcontainerInstance(wcInstance);
+      } catch (err) {
+        console.error("Failed to boot WebContainer:", err);
+        setError("Failed to boot WebContainer.");
+        setIsLoading(false);
+      }
+    };
+    bootWebContainer();
+  }, []);
 
-    async function bootAndSetupWebContainer() {
-      if (bootAttempted.current) return;
-      bootAttempted.current = true;
+  const mountFilesAndRun = useCallback(
+    async (filesToMount) => {
+      if (!webcontainerInstance) {
+        setError("WebContainer not available.");
+        return;
+      }
 
       try {
-        console.log("Attempting to boot WebContainer...");
-        wcInstance = await WebContainer.boot();
-        setWebcontainerInstance(wcInstance);
+        setIsLoading(true);
+        setError(null);
+        setLogs([]);
+        setPreviewUrl("");
 
-        console.log("Mounting files...");
-        await wcInstance.mount(initialFiles);
+        setLoadingMessage("Mounting project files...");
+        await webcontainerInstance.mount(filesToMount);
 
-        console.log("Installing dependencies...");
-        const installProcess = await wcInstance.spawn("npm", ["install"]);
+        setLoadingMessage("Installing dependencies...");
+        setLogs((prev) => [...prev, "Installing dependencies with pnpm..."]);
+        const installProcess = await webcontainerInstance.spawn("pnpm", [
+          "install"
+        ]);
         installProcess.output.pipeTo(
           new WritableStream({
             write(data) {
-              console.log("install:", data);
+              setLogs((prev) => [...prev, data]);
             }
           })
         );
-        const installExitCode = await installProcess.exit;
-        if (installExitCode !== 0) {
-          throw new Error("npm install failed");
+        if ((await installProcess.exit) !== 0) {
+          throw new Error("Installation failed. Check console for details.");
         }
-        console.log("Dependencies installed.");
+        setLogs((prev) => [...prev, "✅ Dependencies installed."]);
 
-        wcInstance.on("server-ready", (port, url) => {
+        webcontainerInstance.on("server-ready", (port, url) => {
           console.log(`Server ready at: ${url}`);
           setPreviewUrl(url);
-          setIsReady(true);
+          setIsLoading(false);
         });
 
-        console.log("Starting dev server...");
-        const devServerProcess = await wcInstance.spawn("npm", ["run", "dev"]);
+        webcontainerInstance.on("error", (err) => {
+          console.error("WebContainer Runtime Error:", err.message);
+          setError(err.message);
+          setIsLoading(false);
+        });
 
-        // Pipe the output to the console without blocking
-        devServerProcess.output.pipeTo(
-          new WritableStream({
-            write(data) {
-              console.log("dev server:", data);
-            }
-          })
-        );
-      } catch (error) {
-        console.error("Failed to boot or setup WebContainer:", error);
-        setIsReady(false);
-        bootAttempted.current = false;
+        setLoadingMessage("Starting dev server...");
+        setLogs((prev) => [...prev, "Starting dev server..."]);
+
+        webcontainerInstance.spawn("pnpm", ["run", "dev"]);
+      } catch (err) {
+        // <<< SYNTAX FIX IS HERE
+        console.error("An error occurred during setup:", err);
+        setError(err.message);
+        setIsLoading(false);
       }
-    }
+    },
+    [webcontainerInstance]
+  );
 
-    bootAndSetupWebContainer();
-
-    return () => {
-      if (wcInstance && typeof wcInstance.teardown === "function") {
-        console.log("Tearing down WebContainer...");
-        wcInstance.teardown();
-      }
-    };
-  }, [initialFiles]); // Added initialFiles to dependency array as it's used inside
-
-  // This effect waits for the previewUrl and updates the iframe
   useEffect(() => {
     if (iframeRef.current && previewUrl) {
       iframeRef.current.src = previewUrl;
-      console.log("Iframe src successfully set to:", previewUrl);
     }
   }, [previewUrl]);
 
+  const isReady = !isLoading && !!previewUrl;
+
+  const value = {
+    webcontainerInstance,
+    previewUrl,
+    isLoading,
+    isReady,
+    error,
+    logs,
+    loadingMessage,
+    iframeRef,
+    mountFilesAndRun
+  };
+
   return (
-    <WebContainerContext.Provider
-      value={{ webcontainerInstance, previewUrl, isReady, iframeRef }}
-    >
+    <WebContainerContext.Provider value={value}>
       {children}
     </WebContainerContext.Provider>
   );
