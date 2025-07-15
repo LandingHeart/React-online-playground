@@ -1,6 +1,6 @@
 # React Playground - A VS Code-like Online Editor
 
-![React Playground Screenshot](https://i.imgur.com/your-screenshot-url.png)
+<img width="1512" height="830" alt="Screenshot 2025-07-14 at 21 18 17" src="https://github.com/user-attachments/assets/84747198-3645-4f2a-9573-d8e073ebc7f2" />
 
 Welcome to the React Playground, a web-based code editor that provides a development experience similar to Visual Studio Code, right in your browser. It's designed for quickly prototyping, experimenting with, and sharing React components without the need for a local development setup.
 
