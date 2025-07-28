@@ -45,14 +45,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   setCode,
   activeFilePath
 }) => {
-  const [displayCode, setDisplayCode] = useState("");
   // TODO find a better way to prevent the monaco editor to not flickers
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDisplayCode(code);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [code]);
 
   const handleEditorMount = (editor: any, monaco: any) => {
     defineDraculaTheme(monaco);
@@ -62,7 +55,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const handleChange = (newCode: string | undefined) => {
     const value = newCode || "";
     // Update local state immediately for a responsive UI while typing.
-    setDisplayCode(value);
     // Also update the parent component's state.
     setCode(value);
   };
@@ -96,7 +88,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           width="100%"
           language={getLanguage(activeFilePath)}
           // MODIFIED: Use the internal `displayCode` state for the editor's value.
-          value={displayCode}
+          value={code}
           theme="dracula"
           options={{
             fontSize: 13,
