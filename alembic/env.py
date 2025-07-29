@@ -1,46 +1,57 @@
 from logging.config import fileConfig
 from alembic import context
+# Ensure your Base is correctly imported. Assuming api.models.py defines it.
+# If Base is in api/database.py, adjust the import accordingly.
 from api.models import Base
 import asyncio
 from sqlalchemy.ext.asyncio import create_async_engine
 from dotenv import load_dotenv
 import os
+
 # Load environment variables from .env file
+# This is crucial for local development to pick up .env variables
 load_dotenv()
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option("DATABASE_URL", os.environ["DATABASE_URL"])
+
+# --- FIX START ---
+# Determine the database URL based on the environment
+# Vercel sets VERCEL_ENV (production, preview, development)
+# Or you can rely on your own ENV variable if you set it manually in Vercel.
+# Default to 'development' if not explicitly set
+env = os.getenv("VERCEL_ENV", os.getenv("ENV", "development"))
+
+# Define the variable that will hold the database URL for Alembic
+db_url_for_alembic = None
+
+if env == "production":
+  # Use POSTGRES_URL_PROD directly
+  db_url_for_alembic = os.getenv("POSTGRES_URL_PROD")
+elif env == 'development' or env == 'preview':  # Vercel uses 'preview' for preview deployments
+  # Use POSTGRES_URL_DEV directly
+  db_url_for_alembic = os.getenv("POSTGRES_URL_DEV")
+
+if db_url_for_alembic is None:
+  raise ValueError(
+      f"Database URL is not set for environment: {env}. Please ensure POSTGRES_URL_PROD or POSTGRES_URL_DEV is configured and contains 'postgresql+asyncpg://' prefix.")
+
+# Set the 'sqlalchemy.url' option in Alembic's config object
+# This makes it available to context.configure later.
+config.set_main_option("sqlalchemy.url", db_url_for_alembic)
+# --- FIX END ---
+
 
 # Interpret the config file for Python logging.
-# This line sets up loggers basically.
 if config.config_file_name is not None:
   fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
 
 
 def run_migrations_offline() -> None:
-  """Run migrations in 'offline' mode.
-
-  This configures the context with just a URL
-  and not an Engine, though an Engine is acceptable
-  here as well.  By skipping the Engine creation
-  we don't even need a DBAPI to be available.
-
-  Calls to context.execute() here emit the given string to the
-  script output.
-
-  """
+  """Run migrations in 'offline' mode."""
   url = config.get_main_option("sqlalchemy.url")
   context.configure(
       url=url,
@@ -48,27 +59,23 @@ def run_migrations_offline() -> None:
       literal_binds=True,
       dialect_opts={"paramstyle": "named"},
   )
-
   with context.begin_transaction():
     context.run_migrations()
 
 
-# alembic/env.py
-
 def run_migrations_online() -> None:
   """Run migrations in 'online' mode."""
 
+  # Retrieve the URL that was set in the config object
   db_url = config.get_main_option("sqlalchemy.url")
   if not db_url:
-    raise ValueError("Database URL is not configured in alembic.ini")
+    raise ValueError("Database URL is not configured in alembic.ini or env.py")
 
+  # Use create_async_engine with the determined URL
   connectable = create_async_engine(db_url)
 
-  # The async logic needs to acquire a connection first
   async def run_migrations_async(engine):
-    # Use the engine to connect
     async with engine.connect() as connection:
-      # Now call run_sync on the connection object
       await connection.run_sync(do_run_migrations)
 
   def do_run_migrations(connection):
@@ -77,11 +84,10 @@ def run_migrations_online() -> None:
       context.run_migrations()
 
   try:
-    # Pass the engine to the async function
     asyncio.run(run_migrations_async(connectable))
   finally:
-    # Dispose of the engine
-    connectable.sync_engine.dispose()
+    # Dispose of the engine's connections
+    asyncio.run(connectable.dispose())
 
 
 if context.is_offline_mode():
