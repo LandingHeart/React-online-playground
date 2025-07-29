@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Annotated
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
+from fastapi.middleware.cors import CORSMiddleware
 
 
 @asynccontextmanager
@@ -25,6 +26,19 @@ app = FastAPI(
 
 # You can add a root endpoint for the FastAPI application itself (useful for health checks)
 # This will be accessible at https://your-app.vercel.app/api/py/
+
+origins = [
+    "https://react-online-playground.vercel.app/",
+    "http://localhost:3000"  # For local development
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
