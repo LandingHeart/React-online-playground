@@ -6,6 +6,8 @@
     "next-dev": "next dev",
     "dev": "concurrently \"npm run next-dev\" \"npm run fastapi-dev\"",
     "build": "next build",
+    "build:production": "next build",
+    "build:preview": "echo \"Build preview \"",
     "start": "next start",
     "lint": "next lint"
   },

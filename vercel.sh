@@ -3,8 +3,17 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-echo "Starting Alembic database upgrade..."
+if [[ $VERCEL_ENV == "production"  ]] ; then
 
-alembic upgrade head
+  echo "Starting build..."
+  npm run build:production
 
-echo "Alembic database upgrade completed."
+  echo "Starting Alembic database upgrade..."
+
+  alembic upgrade head
+
+  echo "Alembic database upgrade completed."
+else
+  npm run build:preview
+fi
+
