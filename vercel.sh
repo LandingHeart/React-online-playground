@@ -10,7 +10,7 @@ if [[ $VERCEL_ENV == "production"  ]] ; then
 
   echo "Starting Alembic database upgrade..."
 
-  alembic upgrade head
+  python3 -m alembic upgrade head
 
   echo "Alembic database upgrade completed."
 else
