@@ -1,3 +1,5 @@
+# api/main.py
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from contextlib import asynccontextmanager
@@ -6,8 +8,6 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from fastapi.middleware.cors import CORSMiddleware
 import logging
-
-# Import database, models, schemas from your project
 from . import database, models, schemas
 
 
@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI):
   """
   logger.info(f"Application starting in '{database.env}' mode...")
   try:
-    if await database.check_db_connection():
+    if await database.connect_to_db():
       async with database.engine.begin() as conn:
         logger.info("Creating database tables...")
         await conn.run_sync(database.Base.metadata.create_all)
@@ -52,9 +52,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize APIRouter without a prefix
-# This means routes defined on 'api_router' will be directly accessible
-api_router = APIRouter()  # Removed prefix="/py"
+api_router = APIRouter()
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -63,13 +61,13 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     yield session
 
 
-@api_router.get("/helloFastApi")
+@api_router.get("/api/helloFastApi")
 def hello_fast_api():
   """A simple synchronous endpoint that does not use the database."""
   return {"message": "Hello from FastAPI (no /py prefix)"}
 
 
-@api_router.get("/projects/{project_id}", response_model=schemas.Project)
+@api_router.get("/api/projects/{project_id}", response_model=schemas.Project)
 async def get_project_with_files(
     project_id: int, db: AsyncSession = Depends(get_db)
 ):
@@ -89,5 +87,4 @@ async def get_project_with_files(
 
   return project
 
-# Include the API router in the main FastAPI application
 app.include_router(api_router)
