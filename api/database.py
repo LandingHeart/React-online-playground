@@ -23,8 +23,7 @@ env = os.getenv("ENV", "development")
 if env == "production":
   POSTGRES_URL = os.getenv("POSTGRES_URL_PROD")
 else:
-  POSTGRES_URL = os.getenv(
-      "POSTGRES_URL_DEV", "postgresql+asyncpg://postgres:admin@localhost/codenan-io")
+  POSTGRES_URL = os.getenv("POSTGRES_URL_DEV")
 
 
 if not POSTGRES_URL:
@@ -32,7 +31,7 @@ if not POSTGRES_URL:
       "Database URL is not set or is empty. Please check your .env file and ensure the correct POSTGRES_URL variable has a value.")
 
 connect_args = {}
-if env == "production":
+if env == "production" or env == "development":
   connect_args = {
       "ssl": "require",
       "statement_cache_size": 0,

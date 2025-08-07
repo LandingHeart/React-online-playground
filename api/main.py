@@ -26,8 +26,6 @@ async def lifespan(app: FastAPI):
     if await database.connect_to_db():
       async with database.engine.begin() as conn:
         logger.info("Creating database tables...")
-        await conn.run_sync(database.Base.metadata.create_all)
-        logger.info("Database tables created successfully.")
   except Exception as e:
     logger.error(f"--- DATABASE CONNECTION FAILED ON STARTUP ---")
     logger.error(f"Error: {e}")

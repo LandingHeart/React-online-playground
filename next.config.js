@@ -4,10 +4,28 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
+        destination: "http://127.0.0.1:8000/api/:path*"
+      },
+      {
+        source: "/api/:path*",
         destination:
           process.env.ENV === "development"
-            ? "http://127.0.0.1:8000/api/:path*" // Proxy to local FastAPI server
-            : "/api/:path*" // In production, this is handled by vercel.json
+            ? "http://127.0.0.1:8000/api/:path*"
+            : "/api/:path*"
+      },
+      {
+        source: "/docs",
+        destination:
+          process.env.ENV === "development"
+            ? "http://127.0.0.1:8000/docs"
+            : "/docs"
+      },
+      {
+        source: "/openapi.json",
+        destination:
+          process.env.ENV === "development"
+            ? "http://127.0.0.1:8000/openapi.json"
+            : "/openapi.json"
       }
     ];
   },
@@ -22,7 +40,7 @@ const nextConfig = {
             value: "require-corp"
           },
           {
-            key: "Cross-Origin-Opener-Policy", // Corrected capitalization
+            key: "Cross-Origin-Opener-Policy",
             value: "same-origin"
           }
         ]
