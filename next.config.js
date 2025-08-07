@@ -24,6 +24,23 @@ const nextConfig = {
             : "/api/openapi.json"
       }
     ];
+  },
+  headers: async () => {
+    return [
+      {
+        source: "/:path*", // Apply to all paths
+        headers: [
+          {
+            key: "Cross-Origin-Embedder-Policy",
+            value: "require-corp"
+          },
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin"
+          }
+        ]
+      }
+    ];
   }
 };
 
