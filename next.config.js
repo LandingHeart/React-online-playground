@@ -3,26 +3,11 @@ const nextConfig = {
   rewrites: async () => {
     return [
       {
-        // This rule handles all /api requests in development, proxying to your local FastAPI
         source: "/api/:path*",
-        destination: "http://127.0.0.1:8000/:path*"
-      },
-      // The previous /api/py/:path* rule is removed as it's no longer needed.
-      {
-        // Route for FastAPI documentation
-        source: "/docs",
         destination:
           process.env.ENV === "development"
-            ? "http://127.0.0.1:8000/docs" // Direct to local docs in dev
-            : "/api/docs" // Route to Vercel hosted FastAPI docs in production
-      },
-      {
-        // Route for FastAPI OpenAPI spec
-        source: "/openapi.json",
-        destination:
-          process.env.ENV === "development"
-            ? "http://127.0.0.1:8000/openapi.json" // Direct to local spec in dev
-            : "/api/openapi.json" // Route to Vercel hosted FastAPI spec in production
+            ? "http://127.0.0.1:8000/api/:path*" // Proxy to local FastAPI server
+            : "/api/:path*" // In production, this is handled by vercel.json
       }
     ];
   },
@@ -37,7 +22,7 @@ const nextConfig = {
             value: "require-corp"
           },
           {
-            key: "Cross-Origin-Opener-Policy",
+            key: "Cross-Origin-Opener-Policy", // Corrected capitalization
             value: "same-origin"
           }
         ]
