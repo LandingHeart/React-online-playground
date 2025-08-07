@@ -3,29 +3,26 @@ const nextConfig = {
   rewrites: async () => {
     return [
       {
-        source: "/api/:path*",
-        destination: "http://127.0.0.1:8000/api/:path*"
+        // This rule handles all /api requests in development, proxying to your local FastAPI
+        source: "/:path*",
+        destination: "http://127.0.0.1:8000/:path*"
       },
+      // The previous /api/py/:path* rule is removed as it's no longer needed.
       {
-        source: "/api/py/:path*",
-        destination:
-          process.env.ENV === "development"
-            ? "http://127.0.0.1:8000/api/py/:path*"
-            : "/api/py/:path*"
-      },
-      {
+        // Route for FastAPI documentation
         source: "/docs",
         destination:
           process.env.ENV === "development"
-            ? "http://127.0.0.1:8000/api/py/docs"
-            : "/api/py/docs"
+            ? "http://127.0.0.1:8000/docs" // Direct to local docs in dev
+            : "/docs" // Route to Vercel hosted FastAPI docs in production
       },
       {
+        // Route for FastAPI OpenAPI spec
         source: "/openapi.json",
         destination:
           process.env.ENV === "development"
-            ? "http://127.0.0.1:8000/api/py/openapi.json"
-            : "/api/py/openapi.json"
+            ? "http://127.0.0.1:8000/openapi.json" // Direct to local spec in dev
+            : "/openapi.json" // Route to Vercel hosted FastAPI spec in production
       }
     ];
   },

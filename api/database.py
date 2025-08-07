@@ -1,35 +1,67 @@
 # api/database.py
 import os
-import asyncio  # Import asyncio
+import asyncio
 from dotenv import load_dotenv
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
+    AsyncSession
 )
-from sqlalchemy import text  # Import text for raw SQL queries
+from sqlalchemy import text
+import logging
+from uuid import uuid4
+# Configure basic logging
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
-
+# Load environment variables from .env file
 load_dotenv()
-env = os.getenv("ENV")
+
+# Get the 'ENV' environment variable, defaulting to 'development'
+env = os.getenv("ENV", "development")
+
 if env == "production":
   POSTGRES_URL = os.getenv("POSTGRES_URL_PROD")
-elif env == "development":
-  POSTGRES_URL = os.getenv("POSTGRES_URL_DEV")
 else:
-  POSTGRES_URL = os.getenv("POSTGRES_URL_DEV")  # Fallback to DEV_ASYNC
+  # Fallback to a local database for development
+  POSTGRES_URL = os.getenv(
+      "POSTGRES_URL_DEV", "postgresql+asyncpg://postgres:admin@localhost/codenan-io")
 
 
-if POSTGRES_URL is None:
-  raise ValueError("POSTGRES_URL environment variable is not set")
+if not POSTGRES_URL:
+  raise ValueError(
+      "Database URL is not set or is empty. Please check your .env file and ensure the correct POSTGRES_URL variable has a value.")
 
-# Add echo=True for debugging connection issues
-engine = create_async_engine(POSTGRES_URL, echo=True)
-SessionLocal = async_sessionmaker(
-    autocommit=False, autoflush=False, bind=engine)
+# --- FIX: Re-added SSL configuration for production environments ---
+connect_args = {}
+if env == "production":
+  # Most cloud databases require SSL. 'require' enforces it.
+  connect_args = {
+      "ssl": "require",
+      "statement_cache_size": 0,
+      "prepared_statement_cache_size": 0,
+      "prepared_statement_name_func": lambda: f"__asyncpg_{uuid4()}__",
+  }
+
+# Create the async engine, passing the SSL config via connect_args.
+# The 'echo=True' flag will print the generated SQL statements.
+engine = create_async_engine(
+    POSTGRES_URL,
+    connect_args=connect_args,
+    echo=True
+)
+
+# Create a session maker
+async_session = async_sessionmaker(
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False
+)
+
+# Base class for declarative models
 Base = declarative_base()
-
-# --- Connection Verification Function ---
 
 
 async def check_db_connection():
@@ -38,28 +70,27 @@ async def check_db_connection():
   to verify the connection.
   """
   try:
+    logging.info("Attempting to connect to the database...")
+    # The program was failing here, preventing the next print statement.
     async with engine.connect() as connection:
-      # Execute a simple query to test the connection
-      # 'SELECT 1' is a common lightweight query for this purpose
+      logging.info("Database connection process started...")
       result = await connection.execute(text("SELECT 1"))
       if result.scalar_one() == 1:
-        print("Database connection successful!")
+        logging.info("✅ Database connection successful!")
         return True
       else:
-        print("Database connection failed: Unexpected query result.")
+        logging.info(
+            "❌ Database connection check failed: Unexpected query result.")
         return False
   except Exception as e:
-    print(f"Database connection failed: {e}")
+    # If the connection times out or fails, this error will be printed.
+    logging.info(
+        f"❌ Database connection failed. Please check your connection string and ensure the database is running. Error: {e}")
     return False
 
-# You might want to call this during application startup
-# For a simple script, you can do:
-
-
-async def main():
-  await check_db_connection()
-
 if __name__ == "__main__":
-  # This block runs only when the script is executed directly
-  # e.g., python api/database.py
-  asyncio.run(main())
+  # This allows you to test the database connection directly by running:
+  # python api/database.py
+  # or for production:
+  # ENV=production python api/database.py
+  asyncio.run(check_db_connection())
