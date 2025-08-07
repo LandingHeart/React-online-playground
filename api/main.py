@@ -57,11 +57,6 @@ app.add_middleware(
 api_router = APIRouter()  # Removed prefix="/py"
 
 
-@app.get("/")
-def read_root_api():
-  return {"message": "FastAPI root is working!"}
-
-
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
   """Dependency that provides an async database session per request."""
   async with database.async_session() as session:
