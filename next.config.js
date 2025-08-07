@@ -4,7 +4,7 @@ const nextConfig = {
     return [
       {
         // This rule handles all /api requests in development, proxying to your local FastAPI
-        source: "/:path*",
+        source: "/api/:path*",
         destination: "http://127.0.0.1:8000/:path*"
       },
       // The previous /api/py/:path* rule is removed as it's no longer needed.
