@@ -169,7 +169,11 @@ const Playground = () => {
 };
 
 const Page = () => {
-  return <> next js </>;
+  return (
+    <WebContainerProvider>
+      <Playground />
+    </WebContainerProvider>
+  );
 };
 
 export default Page;
