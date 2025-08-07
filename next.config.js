@@ -7,25 +7,25 @@ const nextConfig = {
         destination: "http://127.0.0.1:8000/api/:path*"
       },
       {
-        source: "/api/:path*",
+        source: "/api/py/:path*",
         destination:
           process.env.ENV === "development"
-            ? "http://127.0.0.1:8000/api/:path*"
-            : "/api/:path*"
+            ? "http://127.0.0.1:8000/api/py/:path*"
+            : "/api/py/:path*"
       },
       {
         source: "/docs",
         destination:
           process.env.ENV === "development"
-            ? "http://127.0.0.1:8000/docs"
-            : "/docs"
+            ? "http://127.0.0.1:8000/api/py/docs"
+            : "/api/py/docs"
       },
       {
         source: "/openapi.json",
         destination:
           process.env.ENV === "development"
-            ? "http://127.0.0.1:8000/openapi.json"
-            : "/openapi.json"
+            ? "http://127.0.0.1:8000/api/py/openapi.json"
+            : "/api/py/openapi.json"
       }
     ];
   },
