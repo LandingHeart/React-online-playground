@@ -1,6 +1,3 @@
-import os
-import asyncio
-from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import FastAPI, Depends, HTTPException, APIRouter
 from contextlib import asynccontextmanager
