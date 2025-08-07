@@ -14,7 +14,7 @@ const nextConfig = {
         destination:
           process.env.ENV === "development"
             ? "http://127.0.0.1:8000/docs" // Direct to local docs in dev
-            : "/docs" // Route to Vercel hosted FastAPI docs in production
+            : "/api/docs" // Route to Vercel hosted FastAPI docs in production
       },
       {
         // Route for FastAPI OpenAPI spec
@@ -22,7 +22,7 @@ const nextConfig = {
         destination:
           process.env.ENV === "development"
             ? "http://127.0.0.1:8000/openapi.json" // Direct to local spec in dev
-            : "/openapi.json" // Route to Vercel hosted FastAPI spec in production
+            : "/api/openapi.json" // Route to Vercel hosted FastAPI spec in production
       }
     ];
   },
