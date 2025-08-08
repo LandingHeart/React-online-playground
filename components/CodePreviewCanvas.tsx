@@ -1,34 +1,39 @@
-// src/components/CodePreviewCanvas.jsx
-
 "use client";
+import React from "react";
 import { useWebContainer } from "@/components/WebContainerContext";
 
 const CodePreviewCanvas = () => {
-  // This now works because the context provides `isReady`
-  const { isReady, iframeRef } = useWebContainer();
+  // Get all the necessary states from the context
+  const { iframeRef, isLoading, error, loadingMessage, isReady } =
+    useWebContainer();
 
   return (
-    <div className="flex-2 flex flex-col h-full w-full overflow-hidden bg-white">
-      <div className="relative h-full w-full">
-        {!isReady && (
-          <div className="absolute inset-0 flex items-center justify-center font-sans text-blue-400 z-10">
-            {/* You can use isLoading and loadingMessage from the context for a more detailed message */}
-            <h1>Booting WebContainer...</h1>
-          </div>
-        )}
-        <iframe
-          id="output-iframe"
-          title="Output Preview"
-          // FIX: No need to set `src` here; the useEffect in the context handles it
-          style={{
-            width: "100%",
-            height: "100%",
-            border: "none",
-            visibility: isReady ? "visible" : "hidden"
-          }}
-          ref={iframeRef}
-        />
-      </div>
+    <div className="relative flex h-full w-full items-center justify-center bg-[#1e1e1e]">
+      {/* Show loading message when the container is booting or setting up */}
+      {isLoading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#1e1e1e] font-sans text-white">
+          🚀 {loadingMessage || "Preparing environment..."}
+        </div>
+      )}
+
+      {/* Show error message if something goes wrong */}
+      {error && !isLoading && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#1e1e1e] p-4 font-sans text-red-400">
+          <div className="text-lg font-bold">❌ An Error Occurred</div>
+          <p className="mt-2 text-center text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* The iframe for the live preview */}
+      <iframe
+        ref={iframeRef}
+        title="Code Preview"
+        className="h-full w-full bg-white"
+        // Use the isReady flag to control visibility, ensuring a smooth transition
+        style={{
+          visibility: isReady ? "visible" : "hidden"
+        }}
+      />
     </div>
   );
 };

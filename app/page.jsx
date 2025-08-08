@@ -115,22 +115,6 @@ const Playground = () => {
     setActiveFilePath(newPath);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-[#1e1e1e] font-sans text-white">
-        🚀 {loadingMessage || "Preparing environment..."}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-[#1e1e1e] font-sans text-red-400">
-        ❌ Error: {error}
-      </div>
-    );
-  }
-
   return (
     <div className="h-screen w-screen bg-[#1e1e1e] flex flex-col items-stretch overflow-hidden font-sans">
       <Navbar />
@@ -157,7 +141,11 @@ const Playground = () => {
         </div>
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex-1 min-h-0">
-            <CodePreviewCanvas />
+            <CodePreviewCanvas
+              isLoading={isLoading}
+              error={error}
+              loadingMessage={loadingMessage}
+            />
           </div>
           <div className="h-48 flex-shrink-0 border-t-2 border-gray-600">
             <Console logs={logs} />
