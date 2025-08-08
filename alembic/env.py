@@ -17,7 +17,7 @@ db_url_for_alembic = None
 
 if env == "production":
   db_url_for_alembic = os.getenv("POSTGRES_URL_PROD")
-elif env == 'development' or env == 'preview':
+elif env == 'development':
   db_url_for_alembic = os.getenv("POSTGRES_URL_DEV")
 
 if db_url_for_alembic is None:

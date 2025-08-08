@@ -31,7 +31,7 @@ if not POSTGRES_URL:
       "Database URL is not set or is empty. Please check your .env file and ensure the correct POSTGRES_URL variable has a value.")
 
 connect_args = {}
-if env == "production" or env == "development":
+if env == "production":
   connect_args = {
       "ssl": "require",
       "statement_cache_size": 0,
