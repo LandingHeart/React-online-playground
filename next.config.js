@@ -10,14 +10,14 @@ const nextConfig = {
             : "/api/"
       },
       {
-        source: "/api/docs",
+        source: "/docs",
         destination:
           process.env.ENV === "development"
             ? "http://127.0.0.1:8000/docs"
             : "/api/docs"
       },
       {
-        source: "/api/openapi.json",
+        source: "/openapi.json",
         destination:
           process.env.ENV === "development"
             ? "http://127.0.0.1:8000/openapi.json"
@@ -25,6 +25,7 @@ const nextConfig = {
       }
     ];
   },
+
   headers: async () => {
     return [
       {
