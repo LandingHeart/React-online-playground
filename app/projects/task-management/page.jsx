@@ -75,7 +75,7 @@ const Playground = () => {
 
     const fetchAndMountProject = async () => {
       try {
-        const response = await axios.get("/api/projects/1");
+        const response = await axios.get("/projects/1");
         const transformedData = transformProjectDataToFS(response.data);
         setFiles(transformedData);
         console.log(transformedData);

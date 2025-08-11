@@ -36,7 +36,9 @@ async def lifespan(app: FastAPI):
   yield
   logger.info("Application shutdown.")
 
-app = FastAPI(lifespan=lifespan)
+root_path = "/api" if os.getenv("ENV") == "production" else ""
+
+app = FastAPI(lifespan=lifespan, root_path=root_path)
 
 api_router = APIRouter()
 
