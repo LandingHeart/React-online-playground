@@ -1,11 +1,12 @@
+import React from "react";
 import "./globals.css";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Codenan",
-  description: "Online coding editor"
+  title: "Codenan - Online react playround",
+  description: "An online coding playground for React projects."
 };
 
 export default function RootLayout({
@@ -15,7 +16,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={`${inter.className} bg-gray-800 text-white`}>
+        <main>{children}</main>
+      </body>
     </html>
   );
 }

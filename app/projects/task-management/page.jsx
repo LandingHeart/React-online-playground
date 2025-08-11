@@ -14,7 +14,7 @@ import {
   WebContainerProvider,
   useWebContainer
 } from "@/components/WebContainerContext";
-import { transformProjectDataToFS } from "./utils/transformProjectDataToFS";
+import { transformProjectDataToFS } from "@/app/utils/transformProjectDataToFS";
 
 const getFileContent = (files, path) => {
   if (!path) return undefined;
@@ -52,7 +52,7 @@ const updateFileContent = (files, path, newContent) => {
 const Playground = () => {
   const [files, setFiles] = useState({});
   const [activeFilePath, setActiveFilePath] = useState(null);
-  const [activeView, setActiveView] = useState("files");
+  const [activeView, setActiveView] = useState("files"); // Default to 'files'
 
   const {
     webcontainerInstance,
@@ -124,11 +124,16 @@ const Playground = () => {
           className="flex-shrink-0 bg-[#252526]"
           style={{ width: `${sidebarWidth}px` }}
         >
-          <FileExplorer
-            files={files}
-            activeFile={activeFilePath}
-            onFileSelect={handleFileSelect}
-          />
+          {/* Conditional rendering for the sidebar content */}
+          {activeView === "files" ? (
+            <FileExplorer
+              files={files}
+              activeFile={activeFilePath}
+              onFileSelect={handleFileSelect}
+            />
+          ) : (
+            <SearchSidebar />
+          )}
         </div>
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex-1 min-h-0">

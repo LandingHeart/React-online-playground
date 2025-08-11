@@ -30,7 +30,7 @@
     "**/*.tsx",
     "**/*.jsx",
     ".next/types/**/*.ts",
-    "app/page.jsx"
+    "app/(landing)/page.jsx"
   ],
   "exclude": ["node_modules"]
 }

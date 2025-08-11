@@ -8,6 +8,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+import os
 from . import database, models, schemas
 
 
@@ -35,7 +36,9 @@ async def lifespan(app: FastAPI):
   yield
   logger.info("Application shutdown.")
 
-app = FastAPI(lifespan=lifespan)
+root_path = "/api" if os.getenv("ENV") == "production" else ""
+
+app = FastAPI(lifespan=lifespan, root_path=root_path)
 
 api_router = APIRouter()
 
